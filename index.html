@@ -58,34 +58,139 @@
         var meses = Math.round(valor_investimento.value / valor_conta.value)
 
         var demonstrativo = ``
+        var montante_invest = valor_investimento.value 
         for(var i = 0; i < meses; i++){
             demonstrativo += `
             <tr>
                 <th scope="row">${i+1}</th>
-                <td>${parseFloat(valor_investimento.value).toFixed(2)} - ${parseFloat(valor_conta.value).toFixed(2)}</td>
-                <td>R$ ${(valor_investimento.value - valor_conta.value).toFixed(2)}</td>
+                <td>${parseFloat(montante_invest).toFixed(2)} - ${parseFloat(valor_conta.value).toFixed(2)}</td>
+                <td>R$ ${(montante_invest - valor_conta.value).toFixed(2)}</td>
             </tr>`
-            valor_investimento.value -= valor_conta.value
+            montante_invest -= valor_conta.value
         }
+
+        var rendimento_futuro = ``
+        var montante_lucro = 0
+        var juros = 0
+        var montante_juros = 0
+        function calcular_futuro(){
+
+            var meses_l = 24
+            var juros = 0
+            rendimento_futuro = ''
+            montante_lucro = 0
+            montante_juros = 0
+
+            if(document.getElementById('meses_futuros') != undefined){
+                meses_l = parseFloat(document.getElementById('meses_futuros').value)
+            }
+            if(document.getElementById('juros_mensal') != undefined){
+                juros = parseFloat(document.getElementById('juros_mensal').value)
+            }
+
+            for(var i = 0; i < meses_l; i++){
+                rendimento_futuro += `
+                <tr>
+                    <th scope="row">${i+1}</th>
+                    <td>${parseFloat(montante_lucro).toFixed(2)} + ${parseFloat(montante_lucro*juros/100).toFixed(2)} (juros) + ${parseFloat(valor_conta.value).toFixed(2)}</td>
+                    <td>R$ ${(parseFloat(montante_lucro) + parseFloat(montante_lucro*juros/100) + parseFloat(valor_conta.value)).toFixed(2)}</td>
+                </tr>`
+
+                montante_juros += parseFloat(montante_lucro*juros/100)
+                montante_lucro += parseFloat(valor_conta.value) + parseFloat(montante_lucro*juros/100)
+            }
+
+            if(document.getElementById('juros_final') != undefined){
+                document.getElementById('lucro_final').disabled = false
+                document.getElementById('juros_final').disabled = false
+                document.getElementById('lucro_final').value = montante_lucro.toFixed(2)
+                document.getElementById('juros_final').value = montante_juros.toFixed(2)
+                document.getElementById('lucro_final').disabled = true
+                document.getElementById('juros_final').disabled = true
+            }
+
+        }
+        calcular_futuro()
 
         resultados.innerHTML = `
             <div>Seu investimento será retornado em ${meses} meses!</div>
             <br>
             <h6>Veja o demonstrativo:</h6>
+
             <br>
-            <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th scope="col">Mês</th>
-                    <th scope="col">Débito</th>
-                    <th scope="col">Montante final</th>
-                </tr>
-            </thead>
-                <tbody>
-                    ${demonstrativo}
-                </tbody>
-            </table>
+            <div>
+                <a class="btn btn-secondary w-100" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+                    Demonstrativo do retorno
+                </a>
+                <div class="collapse" id="collapseExample">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Mês</th>
+                                <th scope="col">Débito</th>
+                                <th scope="col">Montante final</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${demonstrativo}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <br>
+            <div>
+                <a class="btn btn-secondary w-100 py-2" data-bs-toggle="collapse" href="#futuro" role="button" aria-expanded="false" aria-controls="futuro">
+                    Rendimento futuro
+                </a>
+                <div class="collapse" id="futuro">
+                    <div>
+                        <label for="meses_futuros">Meses futuros</label>
+                        <input id="meses_futuros" type="number" step=".01" class="form-control" placeholder="Número de meses no futuro" value="24">
+                    </div>
+                    <div>
+                        <label for="juros_mensal">Juros mensal</label>
+                        <input id="juros_mensal" type="number" step=".01" class="form-control" placeholder="Número de meses no futuro" value="0">
+                    </div>
+                    <div class="py-2 gap-2 d-flex flex-row align-items-center justify-content-center">
+                        <div class="d-flex flex-column">
+                            <label for="">Lucro total</label>
+                            <input id="lucro_final" class="form-control" value="${montante_lucro}" />    
+                        </div>
+                        <div class="d-flex flex-column">
+                            <label for="">Lucro dos juros</label>
+                            <input id="juros_final" class="form-control" value="${montante_juros}" />    
+                        </div>
+                    </div>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">Mês</th>
+                                <th scope="col">Ganhos</th>
+                                <th scope="col">Montante final</th>
+                            </tr>
+                        </thead>
+                        <tbody id="demonstrativo">
+                            ${rendimento_futuro}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         `
+
+        document.getElementById('meses_futuros').addEventListener('keyup', () => {
+            calcular_futuro()
+            setTimeout(() => {
+                document.getElementById('demonstrativo').innerHTML = rendimento_futuro
+            }, 150)
+        })
+
+        document.getElementById('juros_mensal').addEventListener('keyup', () => {
+            calcular_futuro()
+            setTimeout(() => {
+                document.getElementById('demonstrativo').innerHTML = rendimento_futuro
+            }, 150)
+        })
 
     }
 
